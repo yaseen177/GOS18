@@ -220,8 +220,12 @@ export default function App() {
       });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes as Uint8Array], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
+
+// Use slice() to ensure the data is passed as a standard BlobPart
+// and avoid the SharedArrayBuffer type conflict.
+const blob = new Blob([pdfBytes.slice(0)], { type: 'application/pdf' });
+
+const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (error) {
