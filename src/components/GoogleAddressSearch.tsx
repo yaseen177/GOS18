@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import { useState, useEffect, useRef } from 'react';
 
 export default function GoogleAddressSearch({ field, updateMultipleValues }: { field: any, updateMultipleValues: (updates: {id: string, value: string}[]) => void }) {
