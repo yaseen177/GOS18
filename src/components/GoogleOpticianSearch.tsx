@@ -100,7 +100,7 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
         <input 
           type="text" 
           className="custom-input" 
-          placeholder="Search Google for Practice..." 
+          placeholder="Search Practice..." 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
         />
