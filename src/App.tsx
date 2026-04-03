@@ -882,211 +882,182 @@ export default function App() {
   };
 
   return (
-    <>
-      <style>{`
-        body { margin: 0; padding: 0; background-color: #f8fafc; color: #0f172a; }
-        .custom-input { 
-          padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; 
-          box-sizing: border-box; font-size: 14px; font-family: system-ui, -apple-system, sans-serif; 
-          background-color: #ffffff; transition: all 0.2s ease; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-        }
-        .custom-input:focus { outline: none; border-color: #005eb8; box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.15); }
-        .custom-input::placeholder { color: #94a3b8; }
+    <div className="app-container">
+      {/* Keep minor micro-component styles here just in case they aren't in index.css yet */}
+
+      {/* TOP NAVIGATION */}
+      <header className="top-nav">
+        <h1 className="nav-title">
+          <span style={{ fontSize: '28px' }}>📄</span> 
+          GOS18 Generator
+        </h1>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={() => setAppState('login')} 
+            style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '600', backgroundColor: '#f8fafc', color: '#475569', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+          >
+            ⚙️ Admin Mapping
+          </button>
+          <button 
+            onClick={clearForm} 
+            style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #fecaca', borderRadius: '8px', fontWeight: '600', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff5f5'}
+          >
+            🗑️ Clear Form
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN SPLIT-PANE DASHBOARD */}
+      <main className="dashboard-grid">
         
-        .custom-input:disabled { 
-          background-color: #f1f5f9; 
-          color: #94a3b8; 
-          border-color: #e2e8f0; 
-          cursor: not-allowed; 
-        }
+        {/* LEFT COLUMN: Clean Panel Cards */}
+        <div className="form-column">
+          {uniqueSections.map((sectionName) => {
+            const isOpen = activeSection === sectionName;
 
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
-        .action-btn { transition: transform 0.1s ease, box-shadow 0.2s ease; }
-        .action-btn:active { transform: scale(0.98); }
-        .zoom-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-weight: bold; color: #333; transition: all 0.2s; }
-        .zoom-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
-        .accordion-btn { transition: background-color 0.2s ease; }
-        .accordion-btn:hover { background-color: #f1f5f9 !important; }
-        .tick-card {
-          display: flex; align-items: center; gap: 10px; cursor: pointer;
-          font-size: 13.5px; padding: 10px 14px; border-radius: 8px;
-          transition: all 0.2s ease; border: 1px solid #e2e8f0;
-          background-color: #ffffff;
-        }
-        .tick-card:hover { border-color: #cbd5e1; background-color: #f8fafc; }
-        .tick-card.active { 
-          background-color: #eff6ff; border-color: #bfdbfe; 
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-      `}</style>
-
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', zIndex: 10 }}>
-          <div>
-          <h1 style={{ margin: 0, fontSize: '22px', color: '#111827', display: 'flex', alignItems: 'center', fontWeight: '700' }}>
-  GOS18 Generator
-</h1>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              className="action-btn" onClick={() => setAppState('login')} 
-              style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #e2e8f0', borderRadius: '8px', fontWeight: '600', backgroundColor: '#f8fafc', color: '#475569', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              ⚙️ Admin Mapping
-            </button>
-            <button 
-              className="action-btn" onClick={clearForm} 
-              style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '600', backgroundColor: '#ffffff', color: '#64748b', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              🗑️ Clear Form
-            </button>
-            <button 
-              className="action-btn" onClick={generatePDF} 
-              style={{ padding: '10px 20px', cursor: 'pointer', border: 'none', borderRadius: '8px', fontWeight: '600', backgroundColor: '#005eb8', color: 'white', fontSize: '14px', boxShadow: '0 4px 6px -1px rgba(0, 94, 184, 0.2), 0 2px 4px -1px rgba(0, 94, 184, 0.1)' }}
-            >
-              📄 Open PDF
-            </button>
-          </div>
-        </header>
-
-        <main style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          
-          <div className="custom-scrollbar" style={{ width: '460px', minWidth: '460px', padding: '24px', overflowY: 'auto', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              
-              {uniqueSections.map((sectionName) => {
-                const isOpen = activeSection === sectionName;
+            return (
+              <div key={sectionName} className={`panel-card ${isOpen ? 'open' : ''}`}>
                 
-                return (
-                  <div key={sectionName} style={{ border: '1px solid #cbd5e1', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: isOpen ? '0 4px 6px -1px rgba(0,0,0,0.05)' : 'none', transition: 'box-shadow 0.2s' }}>
-                    
-                    <button 
-                      className="accordion-btn"
-                      onClick={() => setActiveSection(isOpen ? '' : sectionName)}
-                      style={{ width: '100%', padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isOpen ? '#f8fafc' : '#ffffff', border: 'none', cursor: 'pointer', fontWeight: '700', color: '#0f172a', fontSize: '15px', borderBottom: isOpen ? '1px solid #e2e8f0' : 'none' }}
-                    >
-                      {sectionName}
-                      <span style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease', color: '#64748b' }}>▼</span>
-                    </button>
+                {/* STRICTLY NO INLINE STYLES HERE */}
+                <div 
+                  className={`panel-header ${isOpen ? 'open' : ''}`}
+                  onClick={() => setActiveSection(isOpen ? '' : sectionName)}
+                >
+                  <h2 className="section-heading">{sectionName}</h2>
+                  <span className={`chevron ${isOpen ? 'open' : ''}`}>
+                    ▼
+                  </span>
+                </div>
+                
+                {/* Form Content */}
+                {isOpen && (
+                  <div className="panel-body">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      {getFieldBlocksForSection(sectionName).map((block, index) => {
+                        const isTickGroup = block.items.every(item => item.type === 'tick');
 
-                    {isOpen && (
-                      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px', backgroundColor: '#ffffff' }}>
-                        {getFieldBlocksForSection(sectionName).map((block, index) => {
-                          
-                          const isTickGroup = block.items.every(item => item.type === 'tick');
-
-                          if (block.type === 'group') {
-                            return (
-                              <div key={`group-${index}`} style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                                <label style={{ fontWeight: '700', fontSize: '14px', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px' }}>
-                                  {block.name}
-                                </label>
-
-                                <div style={{ 
-                                  display: isTickGroup ? 'grid' : 'flex', 
-                                  gridTemplateColumns: isTickGroup ? 'repeat(auto-fill, minmax(170px, 1fr))' : 'none',
-                                  gap: '8px', flexWrap: 'wrap' 
-                                }}>
-                                  {block.items.map((f) => {
-                                    const displayLabel = (f.group && (f.label.startsWith('RE ') || f.label.startsWith('LE '))) 
-                                      ? f.label.substring(3) 
-                                      : f.label;
-
-                                    return f.type === 'tick' ? (
-                                      <label key={f.id} className={`tick-card ${f.value ? 'active' : ''}`}>
-                                        <input type="checkbox" checked={f.value as boolean} onChange={(e) => updateValue(f.id, e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#005eb8' }} />
-                                        <span style={{ fontWeight: f.value ? '600' : '500', color: f.value ? '#1e3a8a' : '#334155', fontSize: '13px' }}>{displayLabel}</span>
-                                      </label>
-                                    ) : (
-                                      <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '45px' }}>
-                                        <label style={{ fontSize: '12px', color: '#475569', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayLabel}</label>
-                                        {renderInputControl(f)}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          }
-
+                        if (block.type === 'group') {
                           return (
-                            <React.Fragment key={`single-${index}`}>
-                              {block.items.map((f) => (
-                                f.type === 'tick' ? (
-                                  <label key={f.id} className={`tick-card ${f.value ? 'active' : ''}`} style={{ maxWidth: '250px' }}>
-                                    <input type="checkbox" checked={f.value as boolean} onChange={(e) => updateValue(f.id, e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#005eb8' }} />
-                                    <span style={{ fontWeight: f.value ? '600' : '500', color: f.value ? '#1e3a8a' : '#334155' }}>{f.label}</span>
-                                  </label>
-                                ) : (
-                                  <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>{f.label}</label>
-                                    {renderInputControl(f)}
-                                  </div>
-                                )
-                              ))}
-                            </React.Fragment>
+                            <div key={`group-${index}`} style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                              <label style={{ fontWeight: '700', fontSize: '14px', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px' }}>
+                                {block.name}
+                              </label>
+
+                              <div style={{ 
+                                display: isTickGroup ? 'grid' : 'flex', 
+                                gridTemplateColumns: isTickGroup ? 'repeat(auto-fill, minmax(170px, 1fr))' : 'none',
+                                gap: '8px', flexWrap: 'wrap' 
+                              }}>
+                                {block.items.map((f) => {
+                                  const displayLabel = (f.group && (f.label.startsWith('RE ') || f.label.startsWith('LE '))) 
+                                    ? f.label.substring(3) 
+                                    : f.label;
+
+                                  return f.type === 'tick' ? (
+                                    <label key={f.id} className={`tick-card ${f.value ? 'active' : ''}`}>
+                                      <input type="checkbox" checked={f.value as boolean} onChange={(e) => updateValue(f.id, e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0284c7' }} />
+                                      <span style={{ fontWeight: f.value ? '600' : '500', color: f.value ? '#0369a1' : '#334155', fontSize: '13px' }}>{displayLabel}</span>
+                                    </label>
+                                  ) : (
+                                    <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '45px' }}>
+                                      <label style={{ fontSize: '12px', color: '#475569', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayLabel}</label>
+                                      {renderInputControl(f)}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           );
-                        })}
-                      </div>
-                    )}
+                        }
+
+                        return (
+                          <React.Fragment key={`single-${index}`}>
+                            {block.items.map((f) => (
+                              f.type === 'tick' ? (
+                                <label key={f.id} className={`tick-card ${f.value ? 'active' : ''}`} style={{ maxWidth: '250px' }}>
+                                  <input type="checkbox" checked={f.value as boolean} onChange={(e) => updateValue(f.id, e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#0284c7' }} />
+                                  <span style={{ fontWeight: f.value ? '600' : '500', color: f.value ? '#0369a1' : '#334155' }}>{f.label}</span>
+                                </label>
+                              ) : (
+                                <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  <label style={{ fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>{f.label}</label>
+                                  {renderInputControl(f)}
+                                </div>
+                              )
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
                   </div>
-                );
-              })}
-
-            </div>
-          </div>
-
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#cbd5e1', position: 'relative' }}>
-            <div style={{ position: 'absolute', top: '24px', right: '32px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 20, backdropFilter: 'blur(4px)' }}>
-              <button className="zoom-btn" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} title="Zoom Out">−</button>
-              <span style={{ width: '50px', textAlign: 'center', fontSize: '13px', fontWeight: 'bold', color: '#475569' }}>
-                {Math.round(zoom * 100)}%
-              </span>
-              <button className="zoom-btn" onClick={() => setZoom(Math.min(2.0, zoom + 0.1))} title="Zoom In">+</button>
-            </div>
-
-            <div className="custom-scrollbar" style={{ flex: 1, overflow: 'auto', display: 'flex', padding: '40px', alignItems: 'flex-start', justifyContent: 'center' }}>
-              <div style={{
-                width: `${PAGE_WIDTH}px`, height: `${PAGE_HEIGHT}px`, minWidth: `${PAGE_WIDTH}px`, minHeight: `${PAGE_HEIGHT}px`,
-                backgroundImage: `url('/GOS18_bg.jpg')`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
-                backgroundColor: 'white', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
-                position: 'relative', overflow: 'hidden', transform: `scale(${zoom})`, transformOrigin: 'top center',
-                transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)' 
-              }}>
-                {fields.map((field) => (
-                  <div
-                    key={field.id}
-                    style={{
-                      position: 'absolute', left: field.x, top: field.y, width: field.width, height: field.height,
-                      display: 'flex', alignItems: 'flex-start', padding: '2px', boxSizing: 'border-box', overflow: 'hidden',
-                    }}
-                  >
-                     <AutoScalingPreview field={field} />
-                  </div>
-                ))}
+                )}
               </div>
+            );
+          })}
+        </div>
+
+        {/* RIGHT COLUMN: Sticky PDF Preview */}
+        <div className="preview-column">
+          
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: '#0f172a' }}>Live Preview</h2>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px', borderRadius: '8px' }}>
+                <button className="zoom-btn" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} title="Zoom Out">−</button>
+                <span style={{ width: '46px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button className="zoom-btn" onClick={() => setZoom(Math.min(2.0, zoom + 0.1))} title="Zoom In">+</button>
+              </div>
+              
+              <button className="btn-primary" onClick={generatePDF}>
+                Download PDF
+              </button>
             </div>
           </div>
 
-        </main>
+          <div className="custom-scrollbar" style={{ width: '100%', maxHeight: 'calc(100vh - 180px)', overflow: 'auto', backgroundColor: '#cbd5e1', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '20px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+            <div style={{
+              width: `${PAGE_WIDTH}px`, height: `${PAGE_HEIGHT}px`, minWidth: `${PAGE_WIDTH}px`, minHeight: `${PAGE_HEIGHT}px`,
+              backgroundImage: `url('/GOS18_bg.jpg')`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
+              backgroundColor: 'white', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              position: 'relative', overflow: 'hidden', transform: `scale(${zoom})`, transformOrigin: 'top center',
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)' 
+            }}>
+              {fields.map((field) => (
+                <div
+                  key={field.id}
+                  style={{
+                    position: 'absolute', left: field.x, top: field.y, width: field.width, height: field.height,
+                    display: 'flex', alignItems: 'flex-start', padding: '2px', boxSizing: 'border-box', overflow: 'hidden',
+                  }}
+                >
+                   <AutoScalingPreview field={field} />
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <footer style={{ 
-          padding: '12px', 
-          textAlign: 'center', 
-          fontSize: '13px', 
-          fontWeight: '500',
-          color: '#64748b', 
-          backgroundColor: '#ffffff', 
-          borderTop: '1px solid #e2e8f0',
-          zIndex: 10
-        }}>
-          &copy; {new Date().getFullYear()} Created by Yaseen Hussain (Optometrist)
-        </footer>
-      </div>
-    </>
+        </div>
+
+      </main>
+
+      <footer style={{ 
+        marginTop: '40px',
+        padding: '20px 0', 
+        textAlign: 'center', 
+        fontSize: '13px', 
+        fontWeight: '500',
+        color: '#64748b', 
+        borderTop: '1px solid #e2e8f0',
+      }}>
+        &copy; {new Date().getFullYear()} Created by Yaseen Hussain (Optometrist)
+      </footer>
+    </div>
   );
 }

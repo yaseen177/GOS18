@@ -97,6 +97,7 @@ export const gos18Config = [
     "id": "1775165668060",
     "type": "text",
     "label": "GP Name and Address",
+    "group": "GP Details",
     "x": 57.60002136230469,
     "y": 165.6000099182129,
     "width": 245,
@@ -410,7 +411,7 @@ export const gos18Config = [
   {
     "id": "1775167283205",
     "type": "tick",
-    "label": "OCULOPLASTICS/ORBITAL/LACRIMAL",
+    "label": "OCULOPLASTICS / ORBITAL / LACRIMAL",
     "group": "Adults",
     "x": 273.59999084472656,
     "y": 378.6000061035156,
@@ -758,7 +759,7 @@ export const gos18Config = [
   {
     "id": "1775168609851",
     "type": "text",
-    "label": "RE IOP",
+    "label": "IOP RE",
     "group": "IOP",
     "x": 173.6000213623047,
     "y": 568.6000366210938,
@@ -770,7 +771,7 @@ export const gos18Config = [
   {
     "id": "1775168628763",
     "type": "text",
-    "label": "LE IOP",
+    "label": "IOP LE",
     "group": "IOP",
     "x": 310.59999084472656,
     "y": 569.6000366210938,

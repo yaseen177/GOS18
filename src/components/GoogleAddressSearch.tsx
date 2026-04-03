@@ -89,14 +89,12 @@ export default function GoogleAddressSearch({ field, updateMultipleValues }: { f
           </span>
         </div>
         <button 
-          onClick={clearSelection}
-          style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', fontSize: '14px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-          title="Remove Address"
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-        >
-          ✕
-        </button>
+  onClick={clearSelection}
+  className="btn-clear"
+  title="Remove Address"
+>
+  ✕
+</button>
       </div>
     );
   }

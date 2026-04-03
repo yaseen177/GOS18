@@ -87,9 +87,12 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
           </span>
         </div>
         <button 
-          onClick={clearSelection}
-          style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', fontSize: '14px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >✕</button>
+  onClick={clearSelection}
+  className="btn-clear"
+  title="Remove Address"
+>
+  ✕
+</button>
       </div>
     );
   }
