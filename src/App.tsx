@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { gos18Config } from './config';
 
@@ -76,21 +76,123 @@ function AutoScalingPreview({ field }: { field: Field }) {
   );
 }
 
+// --- NHS GP AUTOCOMPLETE TOOL ---
+function GPAutocomplete({ field, updateValue }: { field: Field, updateValue: (id: string, val: string) => void }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (searchTerm.trim().length < 3) {
+      setResults([]);
+      return;
+    }
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations?PrimaryRoleId=RO177&Name=${encodeURIComponent(searchTerm)}`);
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        setResults(data.Organisations || []);
+      } catch (err) {
+        console.error('Failed to search NHS API.', err);
+      }
+      setIsSearching(false);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const selectGP = async (orgId: string, orgName: string) => {
+    setIsSearching(true);
+    try {
+      const res = await fetch(`https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/${orgId}`);
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      const address = data.Organisation?.GeoLoc?.Location;
+
+      const fullAddress = [
+        orgName,
+        address?.AddrLn1,
+        address?.AddrLn2,
+        address?.AddrLn3,
+        address?.Town,
+        address?.PostCode
+      ].filter(Boolean).join('\n');
+
+      updateValue(field.id, fullAddress);
+      setResults([]); 
+      setSearchTerm(''); 
+    } catch (err) {
+      alert('Failed to fetch GP details.');
+    }
+    setIsSearching(false);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+        <input
+          type="text"
+          className="custom-input"
+          placeholder="Search NHS Directory (type 3+ letters)..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ paddingRight: isSearching ? '30px' : '12px' }} 
+        />
+        {isSearching && (
+          <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px' }}>
+            ⏳
+          </div>
+        )}
+        {results.length > 0 && (
+          <div className="custom-scrollbar" style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: '200px', overflowY: 'auto', backgroundColor: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '4px', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+            {results.map((org: any) => (
+              <div
+                key={org.OrgId}
+                onClick={() => selectGP(org.OrgId, org.Name)}
+                style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <strong style={{ color: '#0f172a' }}>{org.Name}</strong> 
+                <span style={{ color: '#64748b' }}>{org.PostCode}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <textarea
+        className="custom-input custom-scrollbar"
+        value={field.value as string}
+        onChange={(e) => updateValue(field.id, e.target.value)}
+        placeholder="Selected GP will appear here..."
+        style={{ resize: 'vertical', minHeight: '60px', height: `${Math.max(60, field.height)}px` }}
+      />
+    </div>
+  );
+}
+
+
 export default function App() {
-  // --- SMART INTERCEPTOR ---
   const [fields, setFields] = useState<Field[]>(() => {
+    // Generate today's date in YYYY-MM-DD format for the date pickers
+    const today = new Date().toISOString().split('T')[0];
+
     return (gos18Config as Field[]).map(field => {
       let f = { ...field };
 
-      // 1. Shift ticks perfectly onto the boxes
-      if (f.type === 'tick') {
-        f.x += 5;
-        f.y += 5;
+      // Pre-populate specific dates
+      if (f.label === 'Date of ST' || f.label === 'Date of Referral') {
+        f.value = today;
       }
 
-      // 2. Auto-Categorise into 7 specific Accordion Sections
+      if (f.type === 'tick') {
+        f.x += 2.5;
+        f.y += 2.5;
+      }
+
       const l = f.label.toLowerCase();
-      
       if (l.includes('date') || l.includes('optician') || l.includes('practice') || l.includes('goc')) {
         f.section = '1. Practice Details';
       }
@@ -144,22 +246,52 @@ export default function App() {
   });
 
   const [zoom, setZoom] = useState(0.85);
-  const [activeSection, setActiveSection] = useState<string>('5. Optical Prescription (Rx)'); // Open Rx by default to test
+  const [activeSection, setActiveSection] = useState<string>('1. Practice Details'); 
 
   const updateValue = (id: string, value: string | boolean) => {
     const targetField = fields.find(f => f.id === id);
-    setFields(fields.map((f) => {
+    
+    let updatedFields = fields.map((f) => {
       if (f.id === id) return { ...f, value };
       if (targetField?.type === 'tick' && targetField.group && targetField.exclusive && value === true) {
         if (f.type === 'tick' && f.group === targetField.group) return { ...f, value: false };
       }
       return f;
-    }));
+    });
+
+    if (targetField && typeof value === 'string' && value.trim() === '') {
+      if (targetField.label.endsWith(' SPH')) {
+        const prefix = targetField.label.substring(0, 3); 
+        updatedFields = updatedFields.map(f => {
+          const baseLabel = f.label.replace(prefix, '');
+          if (f.label.startsWith(prefix) && ['CYL', 'AXIS', 'PRISM', 'BASE', 'ADD'].includes(baseLabel)) {
+            return { ...f, value: '' }; 
+          }
+          return f;
+        });
+      } else if (targetField.label.endsWith(' CYL')) {
+        const prefix = targetField.label.substring(0, 3);
+        updatedFields = updatedFields.map(f => f.label === `${prefix}AXIS` ? { ...f, value: '' } : f);
+      } else if (targetField.label.endsWith(' PRISM')) {
+        const prefix = targetField.label.substring(0, 3);
+        updatedFields = updatedFields.map(f => f.label === `${prefix}BASE` ? { ...f, value: '' } : f);
+      }
+    }
+
+    setFields(updatedFields);
   };
 
   const clearForm = () => {
     if (window.confirm("Are you sure you want to clear all data for this patient?")) {
-      setFields(fields.map(f => ({ ...f, value: f.type === 'tick' ? false : '' })));
+      const today = new Date().toISOString().split('T')[0];
+      
+      setFields(fields.map(f => {
+        // Keep today's date for specific fields when clearing the rest of the form
+        if (f.label === 'Date of ST' || f.label === 'Date of Referral') {
+          return { ...f, value: today };
+        }
+        return { ...f, value: f.type === 'tick' ? false : '' };
+      }));
       setActiveSection('1. Practice Details'); 
     }
   };
@@ -220,12 +352,8 @@ export default function App() {
       });
 
       const pdfBytes = await pdfDoc.save();
-
-// Use slice() to ensure the data is passed as a standard BlobPart
-// and avoid the SharedArrayBuffer type conflict.
-const blob = new Blob([pdfBytes.slice(0)], { type: 'application/pdf' });
-
-const url = URL.createObjectURL(blob);
+      const blob = new Blob([pdfBytes.slice(0)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (error) {
@@ -234,9 +362,33 @@ const url = URL.createObjectURL(blob);
   };
 
   const renderInputControl = (f: Field) => {
+    if (f.label === 'GP Name and Address') {
+      return <GPAutocomplete field={f} updateValue={updateValue} />;
+    }
+
+    let isDisabled = false;
+    if (f.label.startsWith('RE ') || f.label.startsWith('LE ')) {
+      const prefix = f.label.substring(0, 3); 
+      const type = f.label.substring(3);      
+      
+      if (['CYL', 'AXIS', 'PRISM', 'BASE', 'ADD'].includes(type)) {
+        const sphBlank = !String(fields.find(x => x.label === `${prefix}SPH`)?.value || '').trim();
+        if (sphBlank) isDisabled = true;
+        
+        if (type === 'AXIS') {
+          const cylBlank = !String(fields.find(x => x.label === `${prefix}CYL`)?.value || '').trim();
+          if (cylBlank) isDisabled = true;
+        }
+        
+        if (type === 'BASE') {
+          const prismBlank = !String(fields.find(x => x.label === `${prefix}PRISM`)?.value || '').trim();
+          if (prismBlank) isDisabled = true;
+        }
+      }
+    }
+
     switch (f.type) {
       case 'text':
-        // NEW: If it belongs to an Rx or Acuity group, use a single-line input for neatness
         const isShortField = f.group?.includes('Eye') || f.group?.includes('Pressure');
         return isShortField ? (
           <input
@@ -244,6 +396,7 @@ const url = URL.createObjectURL(blob);
             className="custom-input"
             value={f.value as string}
             onChange={(e) => updateValue(f.id, e.target.value)}
+            disabled={isDisabled}
             style={{ textAlign: 'center' }}
           />
         ) : (
@@ -252,24 +405,25 @@ const url = URL.createObjectURL(blob);
             value={f.value as string}
             onChange={(e) => updateValue(f.id, e.target.value)}
             placeholder="Type here..."
+            disabled={isDisabled}
             style={{ resize: 'vertical', minHeight: '40px', height: `${Math.max(40, f.height)}px` }}
           />
         );
       case 'date':
-        return <input className="custom-input" type="date" value={f.value as string} onChange={(e) => updateValue(f.id, e.target.value)} />;
+        return <input className="custom-input" type="date" value={f.value as string} onChange={(e) => updateValue(f.id, e.target.value)} disabled={isDisabled} />;
       case 'dropdown':
         return (
-          <select className="custom-input" value={f.value as string} onChange={(e) => updateValue(f.id, e.target.value)}>
+          <select className="custom-input" value={f.value as string} onChange={(e) => updateValue(f.id, e.target.value)} disabled={isDisabled}>
             <option value="">Select...</option>
             {f.options?.split(',').map((opt) => <option key={opt} value={opt.trim()}>{opt.trim()}</option>)}
           </select>
         );
       case 'radio':
         return (
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', padding: '4px 0' }}>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', padding: '4px 0', opacity: isDisabled ? 0.5 : 1, pointerEvents: isDisabled ? 'none' : 'auto' }}>
             {f.options?.split(',').map((opt) => (
               <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer', color: '#4b5563' }}>
-                <input type="radio" name={f.id} value={opt.trim()} checked={f.value === opt.trim()} onChange={(e) => updateValue(f.id, e.target.value)} style={{ width: '16px', height: '16px', accentColor: '#005eb8' }} />
+                <input type="radio" name={f.id} value={opt.trim()} checked={f.value === opt.trim()} onChange={(e) => updateValue(f.id, e.target.value)} disabled={isDisabled} style={{ width: '16px', height: '16px', accentColor: '#005eb8' }} />
                 {opt.trim()}
               </label>
             ))}
@@ -318,6 +472,14 @@ const url = URL.createObjectURL(blob);
         }
         .custom-input:focus { outline: none; border-color: #005eb8; box-shadow: 0 0 0 3px rgba(0, 94, 184, 0.15); }
         .custom-input::placeholder { color: #94a3b8; }
+        
+        .custom-input:disabled { 
+          background-color: #f1f5f9; 
+          color: #94a3b8; 
+          border-color: #e2e8f0; 
+          cursor: not-allowed; 
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
@@ -407,7 +569,6 @@ const url = URL.createObjectURL(blob);
                                   gap: '8px', flexWrap: 'wrap' 
                                 }}>
                                   {block.items.map((f) => {
-                                    // 3. STRIP REDUNDANT LABELS FOR RX FIELDS SO THEY SIT NEATLY
                                     const displayLabel = (f.group && f.group.includes('Eye')) 
                                       ? f.label.replace(/^(RE|LE)\s+/i, '') 
                                       : f.label;
@@ -418,7 +579,6 @@ const url = URL.createObjectURL(blob);
                                         <span style={{ fontWeight: f.value ? '600' : '500', color: f.value ? '#1e3a8a' : '#334155', fontSize: '13px' }}>{displayLabel}</span>
                                       </label>
                                     ) : (
-                                      // MINWIDTH: 45PX forces up to 6 fields to share a single horizontal row seamlessly
                                       <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '45px' }}>
                                         <label style={{ fontSize: '12px', color: '#475569', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayLabel}</label>
                                         {renderInputControl(f)}
