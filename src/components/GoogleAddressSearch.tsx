@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function GoogleAddressSearch({ field, updateMultipleValues }: { field: any, updateMultipleValues: (updates: {id: string, value: string}[]) => void }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [postcode, setPostcode] = useState('');
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
@@ -14,120 +16,74 @@ export default function GoogleAddressSearch({ field, updateMultipleValues }: { f
     }
   }, []);
 
-  useEffect(() => {
-    if (!searchTerm || !autocompleteService.current) {
-      setPredictions([]);
-      return;
-    }
+  const handleFind = () => {
+    if (!postcode || !autocompleteService.current) return;
+    setIsSearching(true);
+    setPredictions([]);
 
-    // We restrict the search to standard residential/commercial addresses in the UK
+    const combinedQuery = `${houseNumber} ${postcode}`.trim();
     autocompleteService.current.getPlacePredictions({ 
-      input: searchTerm,
+      input: combinedQuery,
       componentRestrictions: { country: 'gb' },
       types: ['address'] 
-    }, (results, status) => {
+    }, (results: google.maps.places.AutocompletePrediction[] | null, status: google.maps.places.PlacesServiceStatus) => {
+      setIsSearching(false);
       if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
         setPredictions(results);
       } else {
-        setPredictions([]);
+        alert("No addresses found.");
       }
     });
-  }, [searchTerm]);
+  };
 
   const handleSelectPlace = (placeId: string) => {
     if (!placesService.current) return;
-
     placesService.current.getDetails({
       placeId: placeId,
       fields: ['formatted_address', 'address_components']
-    }, (place, status) => {
+    }, (place: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
-        
-        // Extract the UK Postcode
-        const postcodeComponent = place.address_components?.find(c => c.types.includes('postal_code'));
-        const postcode = postcodeComponent ? postcodeComponent.long_name : '';
-        
-        // Format the address (removing the postcode from the end of the string)
-        let cleanAddress = place.formatted_address || '';
-        if (postcode) {
-          cleanAddress = cleanAddress.replace(postcode, '').replace(/,\s*$/, '').trim();
-        }
+        const pc = place.address_components?.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code'))?.long_name || '';
+        let addr = place.formatted_address || '';
+        if (pc) addr = addr.replace(pc, '').replace(/,\s*$/, '').trim();
 
-        // Push data simultaneously to the Patient Address and Postcode boxes
         updateMultipleValues([
-          { id: '1775166357198', value: cleanAddress }, // Px Address
-          { id: '1775166388131', value: postcode }      // Px Postcode
+          { id: '1775166357198', value: addr }, 
+          { id: '1775166388131', value: pc }
         ]);
-
-        setSearchTerm('');
         setPredictions([]);
+        setHouseNumber('');
+        setPostcode('');
       }
     });
   };
 
-  const clearSelection = () => {
-    // Clear both patient address fields
-    updateMultipleValues([
-      { id: '1775166357198', value: '' }, 
-      { id: '1775166388131', value: '' }                          
-    ]);
-  };
-
-  // If the field already has an address value, show the "Selected" state
   if (field && field.value) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, paddingRight: '12px' }}>
-          <span style={{ fontSize: '11px', color: '#166534', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            ✅ Patient Address Linked
-          </span>
-          <span style={{ fontSize: '14px', color: '#14532d', lineHeight: '1.4' }}>
-            {field.value}
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <span style={{ fontSize: '11px', color: '#166534', fontWeight: 'bold' }}>✅ PATIENT ADDRESS LINKED</span>
+          <span style={{ fontSize: '14px', color: '#14532d' }}>{field.value}</span>
         </div>
-        <button 
-          onClick={clearSelection}
-          style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', fontSize: '14px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-          title="Remove Address"
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-        >
-          ✕
-        </button>
+        <button onClick={() => updateMultipleValues([{ id: '1775166357198', value: '' }, { id: '1775166388131', value: '' }])} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}>✕</button>
       </div>
     );
   }
 
-  // Otherwise, show the search bar
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ position: 'relative' }}>
-        <input 
-  type="text" 
-  className="custom-input" 
-  // Change the placeholder to guide the user's behaviour:
-  placeholder="Enter House Number & Postcode (e.g. 14 CV1 2WT)..." 
-  value={searchTerm} 
-  onChange={(e) => setSearchTerm(e.target.value)} 
-/>
-        
-        {predictions.length > 0 && (
-          <div className="custom-scrollbar" style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: '200px', overflowY: 'auto', backgroundColor: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '4px', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-            {predictions.map((p) => (
-              <div 
-                key={p.place_id} 
-                onClick={() => handleSelectPlace(p.place_id)}
-                style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '13px' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} 
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <strong style={{ color: '#0f172a' }}>{p.structured_formatting.main_text}</strong> 
-                <span style={{ color: '#64748b', marginLeft: '6px' }}>{p.structured_formatting.secondary_text}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input type="text" className="custom-input" placeholder="House No." value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} style={{ width: '90px' }} />
+        <input type="text" className="custom-input" placeholder="Postcode" value={postcode} onChange={(e) => setPostcode(e.target.value.toUpperCase())} style={{ flex: 1 }} onKeyDown={(e) => e.key === 'Enter' && handleFind()} />
+        <button onClick={handleFind} disabled={isSearching} style={{ padding: '0 16px', backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold' }}>{isSearching ? '⏳' : 'Find'}</button>
       </div>
+      {predictions.length > 0 && (
+        <div className="custom-scrollbar" style={{ border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: 'white', maxHeight: '180px', overflowY: 'auto' }}>
+          {predictions.map((p) => (
+            <div key={p.place_id} onClick={() => handleSelectPlace(p.place_id)} style={{ padding: '10px 12px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #f1f5f9' }}>{p.description}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

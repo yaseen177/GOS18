@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function GoogleOpticianSearch({ field, updateMultipleValues }: { field: any, updateMultipleValues: (updates: {id: string, value: string}[]) => void }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,9 +20,6 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
       return;
     }
 
-    // 🕵️ THE TRICK: Silently append "optician" to the search query.
-    // This forces Google's algorithm to filter out irrelevant businesses
-    // and heavily prioritise optical practices in the dropdown!
     const optimisedQuery = searchTerm.toLowerCase().includes('optician') 
       ? searchTerm 
       : `${searchTerm} optician`;
@@ -31,7 +28,7 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
       input: optimisedQuery,
       componentRestrictions: { country: 'gb' },
       types: ['establishment'] 
-    }, (results, status) => {
+    }, (results: google.maps.places.AutocompletePrediction[] | null, status: google.maps.places.PlacesServiceStatus) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
         setPredictions(results);
       } else {
@@ -46,10 +43,10 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
     placesService.current.getDetails({
       placeId: placeId,
       fields: ['name', 'formatted_address', 'formatted_phone_number', 'address_components']
-    }, (place, status) => {
+    }, (place: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
         
-        const postcodeComponent = place.address_components?.find(c => c.types.includes('postal_code'));
+        const postcodeComponent = place.address_components?.find((c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code'));
         const postcode = postcodeComponent ? postcodeComponent.long_name : '';
         
         let cleanAddress = place.formatted_address || '';
@@ -70,7 +67,6 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
   };
 
   const clearSelection = () => {
-    // Clear all three specific form fields
     updateMultipleValues([
       { id: '1775219937562', value: '' }, 
       { id: '1775165586948', value: '' },                          
@@ -78,9 +74,6 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
     ]);
   };
 
-  // --- RENDER LOGIC ---
-  
-  // Safety check: ensure 'field' exists before checking its value
   if (field && field.value) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px' }}>
@@ -94,40 +87,31 @@ export default function GoogleOpticianSearch({ field, updateMultipleValues }: { 
         </div>
         <button 
           onClick={clearSelection}
-          style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', fontSize: '14px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-          title="Remove Practice"
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-        >
-          ✕
-        </button>
+          style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold', fontSize: '14px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >✕</button>
       </div>
     );
   }
 
-  // Otherwise, show the search bar
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ position: 'relative' }}>
         <input 
           type="text" 
           className="custom-input" 
-          placeholder="Search Google for Practice (e.g. Specsavers Coventry)..." 
+          placeholder="Search Google for Practice..." 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
         />
-        
         {predictions.length > 0 && (
-          <div className="custom-scrollbar" style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: '200px', overflowY: 'auto', backgroundColor: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '4px', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+          <div className="custom-scrollbar" style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: '200px', overflowY: 'auto', backgroundColor: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '4px', zIndex: 50 }}>
             {predictions.map((p) => (
               <div 
                 key={p.place_id} 
                 onClick={() => handleSelectPlace(p.place_id)}
                 style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '13px' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} 
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <strong style={{ color: '#0f172a' }}>{p.structured_formatting.main_text}</strong> 
+                <strong>{p.structured_formatting.main_text}</strong> 
                 <span style={{ color: '#64748b', marginLeft: '6px' }}>{p.structured_formatting.secondary_text}</span>
               </div>
             ))}
