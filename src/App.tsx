@@ -176,7 +176,6 @@ function GPAutocomplete({ field, updateValue }: { field: Field, updateValue: (id
 
 export default function App() {
   const [fields, setFields] = useState<Field[]>(() => {
-    // Generate today's date in YYYY-MM-DD format for the date pickers
     const today = new Date().toISOString().split('T')[0];
 
     return (gos18Config as Field[]).map(field => {
@@ -193,6 +192,7 @@ export default function App() {
       }
 
       const l = f.label.toLowerCase();
+      
       if (l.includes('date') || l.includes('optician') || l.includes('practice') || l.includes('goc')) {
         f.section = '1. Practice Details';
       }
@@ -229,9 +229,13 @@ export default function App() {
         f.section = '6. Visual Acuity & IOP';
         f.group = 'Left Eye Acuity';
       }
-      else if (l.includes('iop') || l.includes('c:d')) {
+      else if (l.includes('iop')) {
         f.section = '6. Visual Acuity & IOP';
         f.group = 'Intraocular Pressure';
+      }
+      else if (l.includes('c:d')) {
+        f.section = '6. Visual Acuity & IOP';
+        f.group = 'Cup-to-Disc Ratio'; // Separated from IOP!
       }
       else if (l.includes('cyclo') || l.includes('dilated')) {
         f.section = '6. Visual Acuity & IOP';
@@ -246,7 +250,7 @@ export default function App() {
   });
 
   const [zoom, setZoom] = useState(0.85);
-  const [activeSection, setActiveSection] = useState<string>('1. Practice Details'); 
+  const [activeSection, setActiveSection] = useState<string>('5. Optical Prescription (Rx)'); 
 
   const updateValue = (id: string, value: string | boolean) => {
     const targetField = fields.find(f => f.id === id);
@@ -286,7 +290,6 @@ export default function App() {
       const today = new Date().toISOString().split('T')[0];
       
       setFields(fields.map(f => {
-        // Keep today's date for specific fields when clearing the rest of the form
         if (f.label === 'Date of ST' || f.label === 'Date of Referral') {
           return { ...f, value: today };
         }
@@ -389,7 +392,7 @@ export default function App() {
 
     switch (f.type) {
       case 'text':
-        const isShortField = f.group?.includes('Eye') || f.group?.includes('Pressure');
+        const isShortField = ['SPH', 'CYL', 'AXIS', 'PRISM', 'BASE', 'ADD', 'VA', 'PH', 'NVA', 'IOP', 'C:D', 'Title'].some(kw => f.label.includes(kw));
         return isShortField ? (
           <input
             type="text"
@@ -569,8 +572,8 @@ export default function App() {
                                   gap: '8px', flexWrap: 'wrap' 
                                 }}>
                                   {block.items.map((f) => {
-                                    const displayLabel = (f.group && f.group.includes('Eye')) 
-                                      ? f.label.replace(/^(RE|LE)\s+/i, '') 
+                                    const displayLabel = (f.group && (f.label.startsWith('RE ') || f.label.startsWith('LE '))) 
+                                      ? f.label.substring(3) 
                                       : f.label;
 
                                     return f.type === 'tick' ? (
