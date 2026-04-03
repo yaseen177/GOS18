@@ -1,6 +1,8 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { gos18Config } from './config';
+import GoogleOpticianSearch from './components/GoogleOpticianSearch';
+import GoogleAddressSearch from './components/GoogleAddressSearch';
 
 // --- TYPES ---
 type InputType = 'text' | 'tick' | 'date' | 'dropdown' | 'radio' | 'sign';
@@ -301,6 +303,134 @@ function GPAutocomplete({ field, updateValue }: { field: Field, updateValue: (id
         )}
       </div>
       <textarea className="custom-input custom-scrollbar" value={field.value as string} onChange={(e) => updateValue(field.id, e.target.value)} placeholder="Selected GP will appear here..." style={{ resize: 'vertical', minHeight: '60px', height: `${Math.max(60, field.height)}px` }} />
+    </div>
+  );
+}
+
+// --- NHS OPTICIAN AUTOCOMPLETE TOOL ---
+function OpticianAutocomplete({ field, updateMultipleValues }: { field: Field, updateMultipleValues: (updates: {id: string, value: string}[]) => void }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (searchTerm.trim().length < 3) {
+      setResults([]);
+      return;
+    }
+    
+    const controller = new AbortController();
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        // Detect if the user is typing a postcode by checking for digits
+        const isPostcode = /\d/.test(searchTerm);
+        const queryParam = isPostcode 
+          ? `PostCode=${encodeURIComponent(searchTerm)}` 
+          : `Name=${encodeURIComponent(searchTerm)}`;
+
+        const res = await fetch(
+          `https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations?PrimaryRoleId=RO167&${queryParam}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        setResults(data.Organisations || []);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') console.error('Failed to search NHS API.', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(delayDebounceFn);
+      controller.abort();
+    };
+  }, [searchTerm]);
+
+  const selectOptician = async (orgId: string, orgName: string) => {
+    setIsSearching(true);
+    try {
+      const res = await fetch(`https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/${orgId}`);
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      const org = data.Organisation;
+      const address = org?.GeoLoc?.Location;
+      
+      // Construct single-line address for the main box
+      const fullAddress = [
+        orgName,
+        address?.AddrLn1,
+        address?.AddrLn2,
+        address?.Town
+      ].filter(Boolean).join(', ');
+
+      const postCode = address?.PostCode || '';
+
+      // Extract Phone Number safely (Spine API structure can vary)
+      let phone = '';
+      if (org?.Contacts?.Contact) {
+        const contacts = Array.isArray(org.Contacts.Contact) ? org.Contacts.Contact : [org.Contacts.Contact];
+        // Look for telephone contacts or values starting with a standard UK dialing code '0'
+        const telContact = contacts.find((c: any) => c.value?.startsWith('0') || String(c.type).toLowerCase().includes('tel'));
+        if (telContact) phone = telContact.value;
+      }
+
+      // Push all values into the specific boxes simultaneously
+      updateMultipleValues([
+        { id: '1775219937562', value: fullAddress }, // Optician Practice Address
+        { id: '1775165586948', value: postCode },    // Practice Post Code
+        { id: '1775165626091', value: phone }        // Practice Tel
+      ]);
+      
+      setResults([]); 
+      setSearchTerm(''); 
+    } catch (err) {
+      alert('Failed to fetch optician details.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+        <input 
+          type="text" 
+          className="custom-input" 
+          placeholder="Search Optician by Name or Postcode..." 
+          value={searchTerm} 
+          onChange={(e) => setSearchTerm(e.target.value)} 
+          style={{ paddingRight: isSearching ? '30px' : '12px' }} 
+        />
+        {isSearching && <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px' }}>⏳</div>}
+        
+        {results.length > 0 && (
+          <div className="custom-scrollbar" style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: '200px', overflowY: 'auto', backgroundColor: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '4px', zIndex: 50, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+            {results.map((org: any) => (
+              <div 
+                key={org.OrgId} 
+                onClick={() => selectOptician(org.OrgId, org.Name)} 
+                style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '13px', display: 'flex', justifyContent: 'space-between' }} 
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} 
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <strong style={{ color: '#0f172a' }}>{org.Name}</strong> 
+                <span style={{ color: '#64748b' }}>{org.PostCode}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <textarea 
+        className="custom-input custom-scrollbar" 
+        value={field.value as string} 
+        onChange={(e) => updateMultipleValues([{ id: field.id, value: e.target.value }])} 
+        placeholder="Selected practice address will appear here..." 
+        style={{ resize: 'vertical', minHeight: '60px', height: `${Math.max(60, field.height)}px` }} 
+      />
     </div>
   );
 }
@@ -632,35 +762,45 @@ export default function App() {
 
   const updateValue = (id: string, value: string | boolean) => {
     const targetField = fields.find(f => f.id === id);
+    const isClearing = typeof value === 'string' && value.trim() === '';
     
-    let updatedFields = fields.map((f) => {
+    // Determine if we are clearing a root optical field
+    const clearingSph = isClearing && targetField?.label.endsWith(' SPH');
+    const clearingCyl = isClearing && targetField?.label.endsWith(' CYL');
+    const prefix = targetField?.label.substring(0, 3);
+  
+    setFields(prev => prev.map(f => {
+      // 1. Update the target field itself
       if (f.id === id) return { ...f, value };
+      
+      // 2. Handle exclusive tick boxes
       if (targetField?.type === 'tick' && targetField.group && targetField.exclusive && value === true) {
         if (f.type === 'tick' && f.group === targetField.group) return { ...f, value: false };
       }
-      return f;
-    });
-
-    if (targetField && typeof value === 'string' && value.trim() === '') {
-      if (targetField.label.endsWith(' SPH')) {
-        const prefix = targetField.label.substring(0, 3); 
-        updatedFields = updatedFields.map(f => {
-          const baseLabel = f.label.replace(prefix, '');
-          if (f.label.startsWith(prefix) && ['CYL', 'AXIS', 'PRISM', 'BASE', 'ADD'].includes(baseLabel)) {
-            return { ...f, value: '' }; 
-          }
-          return f;
-        });
-      } else if (targetField.label.endsWith(' CYL')) {
-        const prefix = targetField.label.substring(0, 3);
-        updatedFields = updatedFields.map(f => f.label === `${prefix}AXIS` ? { ...f, value: '' } : f);
-      } else if (targetField.label.endsWith(' PRISM')) {
-        const prefix = targetField.label.substring(0, 3);
-        updatedFields = updatedFields.map(f => f.label === `${prefix}BASE` ? { ...f, value: '' } : f);
+  
+      // 3. Handle cascading optical field clears in the same pass
+      if (prefix && f.label.startsWith(prefix)) {
+        const baseLabel = f.label.replace(prefix, '');
+        if (clearingSph && ['CYL', 'AXIS', 'PRISM', 'BASE', 'ADD'].includes(baseLabel)) {
+          return { ...f, value: '' };
+        }
+        if (clearingCyl && baseLabel === 'AXIS') {
+          return { ...f, value: '' };
+        }
       }
-    }
+  
+      return f;
+    }));
+  };
 
-    setFields(updatedFields);
+  const updateMultipleValues = (updates: {id: string, value: string | boolean}[]) => {
+    setFields(prevFields => prevFields.map(f => {
+      const update = updates.find(u => u.id === f.id);
+      if (update) {
+        return { ...f, value: update.value };
+      }
+      return f;
+    }));
   };
 
   const clearForm = () => {
@@ -758,8 +898,19 @@ export default function App() {
   };
 
   const renderInputControl = (f: Field) => {
+    // 1. Existing GP Autocomplete intercept
     if (f.label === 'GP Name and Address') {
       return <GPAutocomplete field={f} updateValue={updateValue} />;
+    }
+
+    // 2. NEW: Google Optician Search intercept
+    if (f.id === '1775219937562') {
+      return <GoogleOpticianSearch field={f} updateMultipleValues={updateMultipleValues} />;
+    }
+
+    // 3. NEW: Google Patient Address Search intercept
+    if (f.id === '1775166357198') {
+      return <GoogleAddressSearch field={f} updateMultipleValues={updateMultipleValues} />;
     }
 
     let isDisabled = false;
@@ -903,10 +1054,9 @@ export default function App() {
         
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', zIndex: 10 }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '20px', color: '#111827', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ backgroundColor: '#005eb8', color: 'white', padding: '4px 8px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.5px' }}>NHS</span>
-              GOS18 Generator
-            </h1>
+          <h1 style={{ margin: 0, fontSize: '22px', color: '#111827', display: 'flex', alignItems: 'center', fontWeight: '700' }}>
+  GOS18 Generator
+</h1>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button 
@@ -1050,6 +1200,19 @@ export default function App() {
           </div>
 
         </main>
+
+        <footer style={{ 
+          padding: '12px', 
+          textAlign: 'center', 
+          fontSize: '13px', 
+          fontWeight: '500',
+          color: '#64748b', 
+          backgroundColor: '#ffffff', 
+          borderTop: '1px solid #e2e8f0',
+          zIndex: 10
+        }}>
+          &copy; {new Date().getFullYear()} Created by Yaseen Hussain (Optometrist)
+        </footer>
       </div>
     </>
   );
