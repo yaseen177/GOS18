@@ -7,7 +7,8 @@ export const gos18Config = [
     "width": 150,
     "height": 20,
     "value": "",
-    "label": "Date of ST"
+    "label": "Date of ST",
+    "section": "1. Referral Letter Details"
   },
   {
     "id": "1775165262369",
@@ -17,7 +18,8 @@ export const gos18Config = [
     "y": 36.60000228881836,
     "width": 150,
     "height": 25,
-    "value": ""
+    "value": "",
+    "section": "1. Referral Letter Details"
   },
   {
     "id": "1775165295006",
@@ -28,7 +30,8 @@ export const gos18Config = [
     "y": 76.60000419616699,
     "width": 273,
     "height": 34,
-    "value": ""
+    "value": "",
+    "section": "2. Optician and Practice Details"
   },
   {
     "id": "1775165586948",
@@ -39,7 +42,8 @@ export const gos18Config = [
     "y": 111.40000915527344,
     "width": 71,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "2. Optician and Practice Details"
   },
   {
     "id": "1775165626091",
@@ -50,7 +54,20 @@ export const gos18Config = [
     "y": 107.5999984741211,
     "width": 142,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "2. Optician and Practice Details"
+  },
+  {
+    "id": "1775168812654",
+    "type": "sign",
+    "label": "Optom Signature",
+    "group": "Optician and Practice Details",
+    "x": 118,
+    "y": 810,
+    "width": 243,
+    "height": 30,
+    "value": "",
+    "section": "2. Optician and Practice Details"
   },
   {
     "id": "1775165668060",
@@ -60,13 +77,16 @@ export const gos18Config = [
     "y": 165.6000099182129,
     "width": 245,
     "height": 88,
-    "value": ""
+    "value": "",
+    "section": "3. Patient Details"
   },
   {
     "id": "1775165786649",
     "type": "tick",
     "label": "Female",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Gender",
+    "exclusive": true,
     "x": 530.0000152587891,
     "y": 63,
     "width": 20,
@@ -77,7 +97,9 @@ export const gos18Config = [
     "id": "1775166203216",
     "type": "tick",
     "label": "Male",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Gender",
+    "exclusive": true,
     "x": 515.2000274658203,
     "y": 63.20000457763672,
     "width": 20,
@@ -88,9 +110,10 @@ export const gos18Config = [
     "id": "1775166240094",
     "type": "dropdown",
     "label": "Title",
-    "group": "Patient Details",
-    "x": 350.8000030517578,
-    "y": 74.80000305175781,
+    "section": "3. Patient Details",
+    "group": "Patient Name",
+    "x": 351,
+    "y": 75,
     "width": 48,
     "height": 15,
     "value": "",
@@ -100,7 +123,8 @@ export const gos18Config = [
     "id": "1775166290595",
     "type": "text",
     "label": "Px Surname",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Patient Name",
     "x": 374.59999084472656,
     "y": 94.5999984741211,
     "width": 133,
@@ -111,7 +135,8 @@ export const gos18Config = [
     "id": "1775166325126",
     "type": "text",
     "label": "Px Forenames",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Patient Name",
     "x": 378.8000030517578,
     "y": 113.80000305175781,
     "width": 134,
@@ -122,7 +147,8 @@ export const gos18Config = [
     "id": "1775166357198",
     "type": "text",
     "label": "Px Address",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Address Details",
     "x": 372.40003967285156,
     "y": 134.40000915527344,
     "width": 199,
@@ -133,7 +159,8 @@ export const gos18Config = [
     "id": "1775166388131",
     "type": "text",
     "label": "Px Postcode",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Address Details",
     "x": 507.59999084472656,
     "y": 198.60000610351562,
     "width": 65,
@@ -144,7 +171,8 @@ export const gos18Config = [
     "id": "1775166415084",
     "type": "text",
     "label": "Px Phone",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Contact Details",
     "x": 377.00001525878906,
     "y": 211,
     "width": 141,
@@ -155,7 +183,8 @@ export const gos18Config = [
     "id": "1775166455951",
     "type": "date",
     "label": "PX DOB",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "Date of Birth",
     "x": 384.8000030517578,
     "y": 228.8000030517578,
     "width": 141,
@@ -166,7 +195,8 @@ export const gos18Config = [
     "id": "1775166475190",
     "type": "text",
     "label": "Px NHS No.",
-    "group": "Patient Details",
+    "section": "3. Patient Details",
+    "group": "NHS Number",
     "x": 431.8000030517578,
     "y": 248.8000030517578,
     "width": 140,
@@ -182,7 +212,8 @@ export const gos18Config = [
     "y": 290.19999384880066,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "4. GP Action Required"
   },
   {
     "id": "1775166715310",
@@ -193,7 +224,8 @@ export const gos18Config = [
     "y": 305.4000060558319,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "4. GP Action Required"
   },
   {
     "id": "1775166778360",
@@ -204,7 +236,8 @@ export const gos18Config = [
     "y": 319.20001220703125,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "4. GP Action Required"
   },
   {
     "id": "1775166821980",
@@ -215,7 +248,8 @@ export const gos18Config = [
     "y": 335.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "4. GP Action Required"
   },
   {
     "id": "1775166863971",
@@ -226,172 +260,188 @@ export const gos18Config = [
     "y": 348.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "4. GP Action Required"
   },
   {
     "id": "1775166925808",
     "type": "tick",
     "label": "PAED: STRAB/AMBLYOPIA",
-    "group": "GP Action Required",
+    "group": "Children",
     "x": 25.400009155273438,
     "y": 403.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775166955781",
     "type": "tick",
     "label": "PAED NON STRAB",
-    "group": "GP Action Required",
+    "group": "Children",
     "x": 25,
     "y": 416,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775166995003",
     "type": "tick",
     "label": "ORTHOPTIC",
-    "group": "GP Action Required",
+    "group": "Children",
     "x": 25.400009155273438,
     "y": 429.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167022410",
     "type": "tick",
     "label": "CATARACT",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 274.6000213623047,
     "y": 288.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167046731",
     "type": "tick",
     "label": "CORNEA",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 274.1999969482422,
     "y": 301.2000045776367,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167086350",
     "type": "tick",
     "label": "DIABETIC MEDICAL RETINA",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.6000213623047,
     "y": 314.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167134576",
     "type": "tick",
     "label": "EXTERNAL EYE DISEASE",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 274.40000915527344,
     "y": 327.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167167513",
     "type": "tick",
     "label": "GLAUCOMA",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.59999084472656,
     "y": 339.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167231006",
     "type": "tick",
     "label": "YAG",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.40000915527344,
     "y": 353.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167260412",
     "type": "tick",
     "label": "LOW VISION",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.6000213623047,
     "y": 366.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167283205",
     "type": "tick",
     "label": "OCULOPLASTICS/ORBITAL/LACRIMAL",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.59999084472656,
     "y": 378.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167308522",
     "type": "tick",
     "label": "OTHER MED RET",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 274.00001525878906,
     "y": 392.0000190734863,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167342551",
     "type": "tick",
     "label": "SQUINT/MOTILITY",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 274.59999084472656,
     "y": 404.6000061035156,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167374115",
     "type": "tick",
     "label": "VITREORETINAL",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.40000915527344,
     "y": 417.3999996185303,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167399119",
     "type": "tick",
     "label": "NOT SPECIFIED",
-    "group": "Suggested Clinic Type",
+    "group": "Adults",
     "x": 273.40000915527344,
     "y": 431.3999996185303,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "5. Suggested Clinic Type"
   },
   {
     "id": "1775167437078",
@@ -402,7 +452,8 @@ export const gos18Config = [
     "y": 324.60000228881836,
     "width": 118,
     "height": 117,
-    "value": ""
+    "value": "",
+    "section": "6. Clinical Term"
   },
   {
     "id": "1775167863041",
@@ -413,7 +464,8 @@ export const gos18Config = [
     "y": 475.20000553131104,
     "width": 39,
     "height": 18,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775167900459",
@@ -424,7 +476,8 @@ export const gos18Config = [
     "y": 474.8000030517578,
     "width": 39,
     "height": 17,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775167928041",
@@ -435,7 +488,8 @@ export const gos18Config = [
     "y": 475,
     "width": 40,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775167974508",
@@ -446,7 +500,8 @@ export const gos18Config = [
     "y": 474.8000030517578,
     "width": 40,
     "height": 19,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168030752",
@@ -457,7 +512,8 @@ export const gos18Config = [
     "y": 476.20001220703125,
     "width": 39,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168061122",
@@ -468,7 +524,8 @@ export const gos18Config = [
     "y": 476.60003662109375,
     "width": 40,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168084127",
@@ -479,7 +536,8 @@ export const gos18Config = [
     "y": 477.20001220703125,
     "width": 42,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168112894",
@@ -490,7 +548,8 @@ export const gos18Config = [
     "y": 476.8000030517578,
     "width": 38,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168133833",
@@ -501,7 +560,8 @@ export const gos18Config = [
     "y": 477.8000030517578,
     "width": 41,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168151530",
@@ -512,7 +572,8 @@ export const gos18Config = [
     "y": 477.20001220703125,
     "width": 108,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168233150",
@@ -523,7 +584,8 @@ export const gos18Config = [
     "y": 497.4000244140625,
     "width": 39,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168189811",
@@ -534,7 +596,8 @@ export const gos18Config = [
     "y": 497.79998779296875,
     "width": 40,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168296305",
@@ -545,7 +608,8 @@ export const gos18Config = [
     "y": 496.4000244140625,
     "width": 41,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168323260",
@@ -556,7 +620,8 @@ export const gos18Config = [
     "y": 496.20001220703125,
     "width": 39,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168348408",
@@ -567,7 +632,8 @@ export const gos18Config = [
     "y": 495.60003662109375,
     "width": 41,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168407608",
@@ -578,7 +644,8 @@ export const gos18Config = [
     "y": 495.20001220703125,
     "width": 35,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168431949",
@@ -589,7 +656,8 @@ export const gos18Config = [
     "y": 495.8000030517578,
     "width": 39,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168444113",
@@ -600,7 +668,8 @@ export const gos18Config = [
     "y": 496.8000030517578,
     "width": 36,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168473865",
@@ -611,7 +680,8 @@ export const gos18Config = [
     "y": 496.8000030517578,
     "width": 37,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168490942",
@@ -622,7 +692,8 @@ export const gos18Config = [
     "y": 497.6000232696533,
     "width": 97,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "7. Refraction"
   },
   {
     "id": "1775168534764",
@@ -633,7 +704,8 @@ export const gos18Config = [
     "y": 541.1999969482422,
     "width": 82,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168563552",
@@ -644,7 +716,8 @@ export const gos18Config = [
     "y": 542.4000244140625,
     "width": 84,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168584862",
@@ -655,7 +728,8 @@ export const gos18Config = [
     "y": 575.4000091552734,
     "width": 94,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168609851",
@@ -666,7 +740,8 @@ export const gos18Config = [
     "y": 568.6000366210938,
     "width": 81,
     "height": 17,
-    "value": ""
+    "value": "",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168628763",
@@ -677,7 +752,8 @@ export const gos18Config = [
     "y": 569.6000366210938,
     "width": 86,
     "height": 16,
-    "value": ""
+    "value": "",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168658700",
@@ -689,7 +765,8 @@ export const gos18Config = [
     "width": 128,
     "height": 15,
     "value": "",
-    "options": "NCT,GAT,PERKINS"
+    "options": "NCT,GAT,PERKINS",
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168710589",
@@ -700,7 +777,8 @@ export const gos18Config = [
     "y": 590.3999938964844,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168735352",
@@ -711,7 +789,8 @@ export const gos18Config = [
     "y": 589.8000373840332,
     "width": 20,
     "height": 15,
-    "value": false
+    "value": false,
+    "section": "8. Eye Health"
   },
   {
     "id": "1775168756121",
@@ -721,7 +800,8 @@ export const gos18Config = [
     "y": 609.3999938964844,
     "width": 540,
     "height": 140,
-    "value": ""
+    "value": "",
+    "section": "9. Clinical Information"
   },
   {
     "id": "1775168812653",
@@ -731,6 +811,18 @@ export const gos18Config = [
     "y": 810.0000152587891,
     "width": 127,
     "height": 15,
-    "value": ""
+    "value": "",
+    "section": "2. Optician and Practice Details"
+  },
+  {
+    "id": "1775168812654",
+    "type": "sign",
+    "label": "Optom Signature",
+    "x": 118,
+    "y": 810,
+    "width": 243,
+    "height": 30,
+    "value": "",
+    "section": "2. Optician and Practice Details"
   }
 ];
