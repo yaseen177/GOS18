@@ -691,6 +691,7 @@ export default function App() {
   };
 
   const generatePDF = async () => {
+    fetch('/api/counter', { method: 'POST' }).catch(() => {});
     try {
       const existingPdfBytes = await fetch('/GOS18_template.pdf').then((res) => res.arrayBuffer());
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
