@@ -308,69 +308,12 @@ function GPAutocomplete({ field, updateValue }: { field: Field, updateValue: (id
 }
 
 
-// ==========================================
-// ADMIN LOGIN GATE (NEW)
-// ==========================================
-function AdminLogin({ onSuccess, onCancel }: { onSuccess: () => void, onCancel: () => void }) {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Reads from the .env file. Defaults to 'admin' if not set.
-    const correctPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin';
-    
-    if (password === correctPassword) {
-      onSuccess();
-    } else {
-      setError(true);
-      setPassword('');
-    }
-  };
-
-  return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0f172a', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ backgroundColor: '#1e293b', padding: '32px', borderRadius: '12px', width: '400px', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-        <h2 style={{ marginTop: 0, color: '#f8fafc', fontSize: '22px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          🔒 Admin Access Required
-        </h2>
-        <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>
-          Please enter the master password to access the mapping editor and system configuration.
-        </p>
-        
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <input 
-              type="password" 
-              autoFocus
-              placeholder="Enter Password..."
-              className="custom-input" 
-              style={{ backgroundColor: '#0f172a', color: 'white', borderColor: error ? '#ef4444' : '#475569', padding: '12px' }}
-              value={password} 
-              onChange={(e) => { setPassword(e.target.value); setError(false); }} 
-            />
-            {error && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px', display: 'block' }}>Incorrect password. Please try again.</span>}
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-            <button type="button" onClick={onCancel} style={{ padding: '10px 16px', background: 'transparent', color: '#cbd5e1', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Cancel
-            </button>
-            <button type="submit" style={{ padding: '10px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Unlock Editor
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 
 // ==========================================
 // ADMIN MAPPING MODE COMPONENT
 // ==========================================
-function AdminMapper({ onExit }: { onExit: () => void }) {
+export function AdminMapper({ onExit }: { onExit: () => void }) {
   const [fields, setFields] = useState<Field[]>(gos18Config as Field[]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(0.85);
@@ -595,7 +538,7 @@ function AdminMapper({ onExit }: { onExit: () => void }) {
 // MAIN APPLICATION
 // ==========================================
 export default function App() {
-  const [appState, setAppState] = useState<'app' | 'login' | 'admin'>('app');
+  
 
   const [fields, setFields] = useState<Field[]>(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -625,13 +568,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>(uniqueSections[0] || ''); 
 
   // --- ROUTING / STATE GATES ---
-  if (appState === 'login') {
-    return <AdminLogin onSuccess={() => setAppState('admin')} onCancel={() => setAppState('app')} />;
-  }
-
-  if (appState === 'admin') {
-    return <AdminMapper onExit={() => setAppState('app')} />;
-  }
+  
 
   const updateValue = (id: string, value: string | boolean) => {
     const targetField = fields.find(f => f.id === id);
@@ -893,14 +830,7 @@ export default function App() {
           GOS18 Generator
         </h1>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button 
-            onClick={() => setAppState('login')} 
-            style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '600', backgroundColor: '#f8fafc', color: '#475569', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-          >
-            ⚙️ Admin Mapping
-          </button>
+          
           <button 
             onClick={clearForm} 
             style={{ padding: '10px 16px', cursor: 'pointer', border: '1px solid #fecaca', borderRadius: '8px', fontWeight: '600', backgroundColor: '#fff5f5', color: '#ef4444', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
