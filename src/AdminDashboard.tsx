@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AdminMapper } from './App'; // Imports your secure mapping tool!
 
 export default function AdminDashboard() {
