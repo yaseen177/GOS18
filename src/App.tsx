@@ -37,23 +37,33 @@ const formatDisplayValue = (field: Field) => {
 function AutoScalingPreview({ field }: { field: Field }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
 
   useLayoutEffect(() => {
-    if (!containerRef.current || !textRef.current || field.type === 'tick' || field.type === 'sign' || !field.value) return;
+    if (!containerRef.current || !textRef.current || field.type === 'tick' || field.type === 'sign' || !field.value) {
+      if (isOverflowing) setIsOverflowing(false);
+      return;
+    }
     const container = containerRef.current;
     const textNode = textRef.current;
 
     let currentSize = 12;
     textNode.style.fontSize = `${currentSize}px`;
 
+    // Stop shrinking if it drops below 7pt to keep it readable
     while (
       (textNode.offsetHeight > container.clientHeight || textNode.offsetWidth > container.clientWidth) &&
-      currentSize > 4
+      currentSize > 7
     ) {
       currentSize -= 0.5;
       textNode.style.fontSize = `${currentSize}px`;
     }
-  }, [field.value, field.width, field.height, field.type]);
+
+    const doesOverflow = textNode.offsetHeight > container.clientHeight || textNode.offsetWidth > container.clientWidth;
+    if (isOverflowing !== doesOverflow) {
+      setIsOverflowing(doesOverflow);
+    }
+  }, [field.value, field.width, field.height, field.type, isOverflowing]);
 
   if (field.type === 'tick') {
     return field.value ? <span style={{ fontSize: '14px', color: '#005eb8' }}>❌</span> : null;
@@ -63,6 +73,17 @@ function AutoScalingPreview({ field }: { field: Field }) {
     return field.value ? (
       <img src={String(field.value)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Signature Preview" />
     ) : null;
+  }
+
+  // Show a warning in the live preview if the text is too big for the box
+  if (isOverflowing) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: '12px', color: '#dc2626', fontWeight: 'bold', textAlign: 'center' }}>
+          ** SEE ATTACHED<br/>APPENDIX PAGE **
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -635,6 +656,8 @@ export default function App() {
       const page = pdfDoc.getPages()[0];
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+      let appendixContent = ''; // Holds text that overflows
+
       for (const field of fields) {
         const pdfTopY = PAGE_HEIGHT - field.y;
         const pdfBottomY = PAGE_HEIGHT - field.y - field.height;
@@ -659,9 +682,11 @@ export default function App() {
         else if (field.value && field.type !== 'tick' && field.type !== 'sign') {
           const text = formatDisplayValue(field);
           let fontSize = 12; 
-          const minFontSize = 4; 
+          const minFontSize = 7; // Stop shrinking at 7pt
           let linesToDraw: string[] = [];
           let lineHeight = 0;
+          let totalHeight = 0;
+          let wordBleeds = false;
 
           const getLines = (size: number) => {
             const lines: string[] = [];
@@ -683,19 +708,50 @@ export default function App() {
           while (fontSize >= minFontSize) {
             lineHeight = fontSize * 1.2;
             linesToDraw = getLines(fontSize);
-            const totalHeight = linesToDraw.length * lineHeight;
-            const wordBleeds = linesToDraw.some(line => font.widthOfTextAtSize(line, fontSize) > field.width - 4);
+            totalHeight = linesToDraw.length * lineHeight;
+            wordBleeds = linesToDraw.some(line => font.widthOfTextAtSize(line, fontSize) > field.width - 4);
+            
+            // If it fits perfectly inside the physical box, stop shrinking!
             if (totalHeight <= field.height - 4 && !wordBleeds) break; 
+            
             fontSize -= 0.5;
           }
 
-          linesToDraw.forEach((line, index) => {
-            page.drawText(line, {
-              x: field.x + 2, y: pdfTopY - fontSize - 2 - (index * lineHeight), 
-              size: fontSize, font, color: rgb(0, 0, 0),
+          // IF IT STILL DOES NOT FIT, DIVERT TO APPENDIX
+          if (totalHeight > field.height - 4 || wordBleeds) {
+            page.drawText('** SEE ATTACHED APPENDIX PAGE **', {
+              x: field.x + 4, y: pdfTopY - 14, 
+              size: 10, font, color: rgb(0.86, 0.15, 0.15), // Professional red warning text
             });
-          });
+            appendixContent += `\n\n--- ${field.label.toUpperCase()} ---\n${text}`;
+          } else {
+            // Otherwise, print normally inside the box
+            linesToDraw.forEach((line, index) => {
+              page.drawText(line, {
+                x: field.x + 2, y: pdfTopY - fontSize - 2 - (index * lineHeight), 
+                size: fontSize, font, color: rgb(0, 0, 0),
+              });
+            });
+          }
         }
+      }
+
+      // --- NEW: CREATE THE APPENDIX PAGE IF REQUIRED ---
+      if (appendixContent) {
+        const appendixPage = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        
+        // Page Header
+        appendixPage.drawText('GOS18 - CLINICAL CONTINUATION SHEET', {
+          x: 50, y: PAGE_HEIGHT - 60, size: 16, font, color: rgb(0, 0, 0)
+        });
+
+        // Beautifully word-wrapped clinical notes
+        appendixPage.drawText(appendixContent.trim(), {
+          x: 50, y: PAGE_HEIGHT - 100, 
+          size: 11, font, color: rgb(0, 0, 0), 
+          maxWidth: PAGE_WIDTH - 100,
+          lineHeight: 16
+        });
       }
 
       const pdfBytes = await pdfDoc.save();
