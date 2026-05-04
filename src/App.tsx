@@ -25,12 +25,21 @@ interface Field {
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 
-// --- FORMATTING HELPER ---
+// --- FORMATTING & SANITIZATION HELPER ---
 const formatDisplayValue = (field: Field) => {
   if (field.type === 'date' && typeof field.value === 'string' && field.value) {
     return field.value.split('-').reverse().join('/');
   }
-  return String(field.value || '');
+  
+  const rawText = String(field.value || '');
+  
+  // CRITICAL FIX: Replaces special hidden characters (smart quotes, em-dashes, 
+  // non-breaking hyphens) that crash the standard PDF-lib Helvetica font.
+  return rawText
+    .replace(/[\u2018\u2019`]/g, "'") // Smart single quotes
+    .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g, '-') // Fancy dashes & hyphens
+    .replace(/\u2026/g, '...'); // Ellipsis
 };
 
 // --- AUTO-SCALING WEB PREVIEW COMPONENT ---
@@ -760,7 +769,8 @@ export default function App() {
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (error) {
-      alert('Failed to generate PDF. Ensure GOS18_template.pdf is in the public folder.');
+      console.error("PDF GENERATION CRASHED:", error); // Logs the real error for us to see!
+      alert('Failed to generate PDF. Please check the developer console for details.');
     }
   };
 
