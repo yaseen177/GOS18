@@ -472,3 +472,13 @@ body {
 .progress-status.complete {
   color: #10b981;
 }
+
+/* -----------------------------------
+   Large Clinical Text Areas
+----------------------------------- */
+textarea.custom-input {
+  resize: vertical; /* Only allows the locum to drag the box up and down, not sideways */
+  min-height: 140px; /* Gives the clinical text plenty of room initially */
+  white-space: pre-wrap; /* Forces long medical paragraphs to wrap safely */
+  line-height: 1.5;
+}
