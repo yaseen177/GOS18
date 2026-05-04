@@ -216,6 +216,7 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* -----------------------------------
@@ -224,11 +225,10 @@ body {
 .form-column {
   width: 480px; 
   min-width: 480px;
+  flex-shrink: 0; /* Stops the column from ever being squeezed horizontally */
   height: 100%;
   padding: 24px;
-  overflow-y: auto; 
-  border-right: 1px solid var(--border-light);
-  background-color: var(--bg-app);
+  overflow-y: auto; /* Forces the scrollbar to stay inside this specific box */
   display: flex;
   flex-direction: column;
   gap: 24px;
